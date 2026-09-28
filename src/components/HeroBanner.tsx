@@ -114,7 +114,7 @@ const HeroBanner = () => {
   const isVideo = current?.kind === 'admin' && current.banner.type === 'video';
 
   useEffect(() => {
-    if (isVideo) return;
+    if (isVideo || slides.length === 0) return;
     const t = setInterval(() => setCurrentSlide(p => (p + 1) % slides.length), 6000);
     return () => clearInterval(t);
   }, [slides.length, currentSlide, isVideo]);
@@ -128,6 +128,10 @@ const HeroBanner = () => {
 
   const next = () => setCurrentSlide(p => (p + 1) % slides.length);
   const prev = () => setCurrentSlide(p => (p - 1 + slides.length) % slides.length);
+
+  if (slides.length === 0) {
+    return <section className="relative mb-4"><div className="w-full aspect-[1920/544] rounded-lg border border-border bg-muted/40" /></section>;
+  }
 
   return (
     <section className="relative mb-4" aria-roledescription="carousel" aria-label="Featured campaigns">
