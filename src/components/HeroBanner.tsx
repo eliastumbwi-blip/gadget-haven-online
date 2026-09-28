@@ -12,6 +12,7 @@ export interface BannerSlide {
   path: string;
   alt: string;
   type?: 'image' | 'video';
+  mobileImage?: string;
 }
 
 type Slide =
@@ -132,17 +133,29 @@ const HeroBanner = () => {
             {slide.kind === 'campaign' ? (
               <CampaignSlide campaign={slide.campaign} eager={index === 0} />
             ) : (
-              <div className="w-full aspect-[1920/544] bg-card cursor-pointer" onClick={() => navigate(slide.banner.path || '/products')}>
-                {slide.banner.type === 'video' ? (
-                  <video
-                    ref={el => { videoRefs.current[index] = el; }}
-                    src={slide.banner.image}
-                    muted playsInline loop={false}
-                    onEnded={next}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <img src={slide.banner.image} alt={slide.banner.alt} loading={index === 0 ? 'eager' : 'lazy'} className="w-full h-full object-contain" />
+              <div className="cursor-pointer" onClick={() => navigate(slide.banner.path || '/products')}>
+                {slide.banner.mobileImage && slide.banner.type !== 'video' && (
+                  <img src={slide.banner.mobileImage} alt={slide.banner.alt} loading={index === 0 ? 'eager' : 'lazy'}
+                    className="sm:hidden w-full h-auto aspect-[4/5] object-contain bg-card" />
+                )}
+                <div className={cn('w-full aspect-[1920/544] bg-card', slide.banner.mobileImage && slide.banner.type !== 'video' && 'hidden sm:block')}>
+                  {slide.banner.type === 'video' ? (
+                    <video
+                      ref={el => { videoRefs.current[index] = el; }}
+                      src={slide.banner.image}
+                      muted playsInline loop={false}
+                      onEnded={next}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <img src={slide.banner.image} alt={slide.banner.alt} loading={index === 0 ? 'eager' : 'lazy'} className="w-full h-full object-contain" />
+                  )}
+                </div>
+                {!(slide.banner.mobileImage && slide.banner.type !== 'video') && (
+                  <div className="sm:hidden flex items-center justify-between gap-3 px-4 pt-3 pb-8">
+                    <span className="text-sm font-semibold text-foreground line-clamp-2">{slide.banner.alt && slide.banner.alt !== 'New Banner' ? slide.banner.alt : 'Shop the latest gadgets'}</span>
+                    <Button size="sm" className="rounded-md shrink-0">Shop now</Button>
+                  </div>
                 )}
               </div>
             )}
