@@ -15,6 +15,7 @@ export interface BannerSlide {
   path: string;
   alt: string;
   type?: 'image' | 'video';
+  mobileImage?: string;
 }
 
 const DEFAULT_SLIDES: BannerSlide[] = [
@@ -53,14 +54,14 @@ const BannerManagement: React.FC = () => {
   const isVideoFile = (file: File) => file.type.startsWith('video/');
   const isMediaFile = (file: File) => file.type.startsWith('image/') || file.type.startsWith('video/');
 
-  const handleFileUpload = async (index: number, file: File) => {
+  const handleFileUpload = async (index: number, file: File, field: 'image' | 'mobileImage' = 'image') => {
     if (!file) return;
     const maxSize = isVideoFile(file) ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
     if (file.size > maxSize) {
       toast({ title: 'File too large', description: `Max file size is ${isVideoFile(file) ? '50MB' : '5MB'}`, variant: 'destructive' });
       return;
     }
-    if (!isMediaFile(file)) {
+    if (!isMediaFile(file) || (field === 'mobileImage' && isVideoFile(file))) {
       toast({ title: 'Invalid file', description: 'Please select an image or video file', variant: 'destructive' });
       return;
     }
@@ -68,16 +69,14 @@ const BannerManagement: React.FC = () => {
     setUploadingIndex(index);
     try {
       const ext = file.name.split('.').pop();
-      const fileName = `banner_${Date.now()}_${index}.${ext}`;
+      const fileName = `banner_${field === 'mobileImage' ? 'mobile_' : ''}${Date.now()}_${index}.${ext}`;
       const { data, error } = await supabase.storage.from('gallary').upload(fileName, file, { upsert: true });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from('gallary').getPublicUrl(data.path);
       const updated = [...slides];
-      updated[index] = {
-        ...updated[index],
-        image: urlData.publicUrl,
-        type: isVideoFile(file) ? 'video' : 'image',
-      };
+      updated[index] = field === 'mobileImage'
+        ? { ...updated[index], mobileImage: urlData.publicUrl }
+        : { ...updated[index], image: urlData.publicUrl, type: isVideoFile(file) ? 'video' : 'image' };
       setSlides(updated);
       toast({ title: `${isVideoFile(file) ? 'Video' : 'Image'} uploaded`, description: 'Banner media updated successfully' });
     } catch (error: any) {
@@ -205,6 +204,26 @@ const BannerManagement: React.FC = () => {
                 <Label className="text-muted-foreground text-xs">{slide.type === 'video' ? 'Video' : 'Image'} URL (or upload above)</Label>
                 <Input value={slide.image} onChange={(e) => updateSlide(index, 'image', e.target.value)} placeholder="https://..." />
               </div>
+
+              {slide.type !== 'video' && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs">Phone image (optional, 1080×1350 portrait). Without it, phones show the wide image with a Shop now bar.</Label>
+                  <div className="flex items-center gap-3">
+                    <input type="file" accept="image/*" className="hidden" id={`mobile-${slide.id}`}
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(index, f, 'mobileImage'); e.target.value = ''; }} />
+                    <Button variant="outline" size="sm" onClick={() => document.getElementById(`mobile-${slide.id}`)?.click()} disabled={uploadingIndex === index}>
+                      <Upload className="w-4 h-4 mr-2" />
+                      {slide.mobileImage ? 'Change phone image' : 'Upload phone image'}
+                    </Button>
+                    {slide.mobileImage && (
+                      <>
+                        <img src={slide.mobileImage} alt="" className="h-14 w-11 object-contain border border-border rounded" />
+                        <Button variant="ghost" size="sm" onClick={() => updateSlide(index, 'mobileImage', '')}>Remove</Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
