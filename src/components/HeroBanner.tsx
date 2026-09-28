@@ -77,7 +77,11 @@ const CampaignSlide = ({ campaign, eager }: { campaign: HeroCampaign; eager: boo
 const HeroBanner = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [adminSlides, setAdminSlides] = useState<BannerSlide[]>([]);
+  const cached = (() => {
+    try { const s = localStorage.getItem('gg_hero_banners'); return s ? (JSON.parse(s) as BannerSlide[]) : null; } catch { return null; }
+  })();
+  const [adminSlides, setAdminSlides] = useState<BannerSlide[]>(cached ?? []);
+  const [loaded, setLoaded] = useState(cached !== null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   useEffect(() => {
@@ -88,25 +92,29 @@ const HeroBanner = () => {
     (async () => {
       try {
         const { data, error } = await supabase
-          .from('admin_settings').select('value').eq('key', 'desktop_banners').single();
-        if (!error && Array.isArray(data?.value)) {
-          const banners = (data!.value as unknown as BannerSlide[]).filter(b => b?.image);
-          setAdminSlides(banners.map(b => ({ ...b, type: b.type || 'image' })));
+          .from('admin_settings').select('value').eq('key', 'desktop_banners').maybeSingle();
+        if (!error) {
+          const banners = Array.isArray(data?.value)
+            ? (data!.value as unknown as BannerSlide[]).filter(b => b?.image).map(b => ({ ...b, type: b.type || 'image' }))
+            : [];
+          setAdminSlides(banners);
+          try { localStorage.setItem('gg_hero_banners', JSON.stringify(banners)); } catch { /* ignore */ }
         }
       } catch { /* campaigns only */ }
+      setLoaded(true);
     })();
   }, []);
 
   // Admin-panel banners drive the hero; built-in campaigns only show when none are set
   const slides: Slide[] = adminSlides.length > 0
     ? adminSlides.map(b => ({ kind: 'admin' as const, banner: b }))
-    : HERO_CAMPAIGNS.map(c => ({ kind: 'campaign' as const, campaign: c }));
+    : loaded ? HERO_CAMPAIGNS.map(c => ({ kind: 'campaign' as const, campaign: c })) : [];
 
   const current = slides[currentSlide];
   const isVideo = current?.kind === 'admin' && current.banner.type === 'video';
 
   useEffect(() => {
-    if (isVideo) return;
+    if (isVideo || slides.length === 0) return;
     const t = setInterval(() => setCurrentSlide(p => (p + 1) % slides.length), 6000);
     return () => clearInterval(t);
   }, [slides.length, currentSlide, isVideo]);
@@ -120,6 +128,10 @@ const HeroBanner = () => {
 
   const next = () => setCurrentSlide(p => (p + 1) % slides.length);
   const prev = () => setCurrentSlide(p => (p - 1 + slides.length) % slides.length);
+
+  if (slides.length === 0) {
+    return <section className="relative mb-4"><div className="w-full aspect-[1920/544] rounded-lg border border-border bg-muted/40" /></section>;
+  }
 
   return (
     <section className="relative mb-4" aria-roledescription="carousel" aria-label="Featured campaigns">
