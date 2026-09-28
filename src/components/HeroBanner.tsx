@@ -145,10 +145,10 @@ const HeroBanner = () => {
                       src={slide.banner.image}
                       muted playsInline loop={false}
                       onEnded={next}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    <img src={slide.banner.image} alt={slide.banner.alt} loading={index === 0 ? 'eager' : 'lazy'} className="w-full h-full object-contain" />
+                    <img src={slide.banner.image} alt={slide.banner.alt} loading={index === 0 ? 'eager' : 'lazy'} className="w-full h-full object-cover" />
                   )}
                 </div>
                 {!(slide.banner.mobileImage && slide.banner.type !== 'video') && (
