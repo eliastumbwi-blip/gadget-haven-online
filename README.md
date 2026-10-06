@@ -1,8 +1,8 @@
 
-# 🛍️ Gadget Genie - Your Ultimate Tech Destination
+# 🛍️ GadgetGenie - Your Ultimate Tech Destination
 
 <div align="center">
-  <img src="public/logo.svg" alt="Gadget Genie Logo" width="200" height="200" />
+  <img src="public/logo.svg" alt="GadgetGenie Logo" width="200" height="200" />
   <h3>Zimbabwe's Premier Tech E-commerce Platform</h3>
   
   [![React](https://img.shields.io/badge/React-18.3.1-blue.svg)](https://reactjs.org/)
