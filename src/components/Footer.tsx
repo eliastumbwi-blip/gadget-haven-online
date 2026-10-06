@@ -39,7 +39,7 @@ const Footer = () => (
             <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
               <span className="text-primary-foreground font-bold">G</span>
             </div>
-            <span className="text-lg font-bold text-primary">Gadget Genie</span>
+            <span className="text-lg font-bold text-primary">GadgetGenie</span>
           </div>
           <p className="text-sm text-muted-foreground max-w-xs">
             Genuine gadgets and electronics, delivered across Zimbabwe.
