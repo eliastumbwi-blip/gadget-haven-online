@@ -61,7 +61,7 @@ const Footer = () => (
         ))}
       </div>
       <div className="border-t border-border pt-6 flex flex-col sm:flex-row justify-between gap-2 text-xs text-muted-foreground">
-        <span>© {new Date().getFullYear()} Gadget Genie. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} GadgetGenie. All rights reserved.</span>
         <span>Secure payments via PesePay and PayPal</span>
       </div>
     </div>
